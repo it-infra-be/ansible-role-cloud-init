@@ -1,2 +1,121 @@
 ---
+- name: Gathering service facts
+  ansible.builtin.service_facts:
+
+- name: Install cloud-init dependencies
+  ansible.builtin.dnf:
+    name: '{{ item }}'
+    state: present
+  loop:
+    - nginx
+    - cloud-init
+
+- name: Create cloud-init root directory
+  ansible.builtin.file:
+    path: /www/cloud-init
+    state: directory
+    owner: nginx
+    group: nginx
+    recurse: true
+    setype: httpd_sys_content_t
+    mode: '0700'
+
+- name: Find current cloud-init directories
+  ansible.builtin.find:
+    paths: /www/cloud-init
+    recurse: false
+    file_type: directory
+  register: __register_cloud_init_current_subdirs
+
+- name: Remove cloud-init directories
+  ansible.builtin.file:
+    path: '{{ item.path }}'
+    state: absent
+    recurse: false
+  loop: '{{ __register_cloud_init_current_subdirs.files }}'
+  loop_control:
+    label: '{{ item.path | basename }}'
+  when: (item.path | basename) not in (cloud_init_user_data | default([]) | flatten)
+
+- name: Create cloud-init directories
+  ansible.builtin.file:
+    path: /www/cloud-init/{{ item }}
+    state: directory
+    owner: nginx
+    group: nginx
+    setype: httpd_sys_content_t
+    mode: '0700'
+  loop: "{{ cloud_init_user_data | flatten(levels=1) }}"
+  when: cloud_init_user_data is defined
+
+- name: Configure cloud-init vendor-data
+  ansible.builtin.template:
+    src: www/cloud-init/vendor-data.j2
+    dest: /www/cloud-init/{{ item.key }}/vendor-data
+    owner: nginx
+    group: nginx
+    setype: httpd_sys_content_t
+    mode: '0700'
+    validate: /usr/bin/cloud-init schema -c %s
+  loop: "{{ cloud_init_user_data | dict2items }}"
+  loop_control:
+    label: '{{ item.key }}'
+  vars:
+    vendor_data: "{{ cloud_init_vendor_data | default(None) }}"
+  when: cloud_init_user_data is defined
+
+- name: Configure cloud-init user-data
+  ansible.builtin.template:
+    src: www/cloud-init/user-data.j2
+    dest: /www/cloud-init/{{ item.key }}/user-data
+    owner: nginx
+    group: nginx
+    setype: httpd_sys_content_t
+    mode: '0700'
+    validate: /usr/bin/cloud-init schema -c %s
+  loop: "{{ cloud_init_user_data | dict2items }}"
+  loop_control:
+    label: '{{ item.key }}'
+  vars:
+    user_data: "{{ item.value | default(None) }}"
+  when: cloud_init_user_data is defined
+
+- name: Configure cloud-init metadata placeholder
+  ansible.builtin.template:
+    src: www/cloud-init/meta-data.j2
+    dest: /www/cloud-init/{{ item.key }}/meta-data
+    owner: nginx
+    group: nginx
+    setype: httpd_sys_content_t
+    mode: '0700'
+  loop: "{{ cloud_init_user_data | dict2items }}"
+  loop_control:
+    label: '{{ item.key }}'
+  vars:
+    meta_data: '{{ None }}'
+  when: cloud_init_user_data is defined
+
+- name: Configure Nginx
+  ansible.builtin.template:
+    src: etc/nginx/nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart nginx
+
+- name: Allow HTTP in firewalld for libvirt zone
+  ansible.posix.firewalld:
+    zone: libvirt
+    service: http
+    permanent: true
+    immediate: true
+    state: enabled
+  when: ansible_facts.services['firewalld.service'].state == 'running'
+
+- name: Start and enable Nginx services
+  ansible.builtin.systemd_service:
+    state: started
+    enabled: true
+    name: nginx
 ...

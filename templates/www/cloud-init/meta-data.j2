@@ -1,0 +1,5 @@
+# Currently only used as placeholder to make cloud-init work
+# More information: https://cloudinit.readthedocs.io/en/latest/explanation/instancedata.html
+{% if meta_data %}
+{{ meta_data | to_nice_json }}
+{% endif %}
