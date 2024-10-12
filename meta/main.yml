@@ -1,9 +1,9 @@
 ---
 galaxy_info:
-  role_name: <ROLE>
+  role_name: cloud_init
   namespace: it_infra_be
   author: Karon Pante <karon.pante@it-infra.be>
-  description: <ROLE_DESCRIPTION>
+  description: Installation and setup of Cloud Init (NoCloud)
   company: IT Infra
   license: MIT
   min_ansible_version: '2.15'
