@@ -50,9 +50,9 @@ cloud_init_user_data:
 
 ## Examples
 
-### Default user-data
+### Vendor- and user-data
 
-The above cloud-init configuration can be reached via 'http://<IP-ADDRESS>/default' and will provide three files.
+The above cloud-init configuration can be reached via 'http://IP_ADDRESS/default' and will provide three files.
 
 The globally defined vendor-data file:
 
@@ -75,3 +75,23 @@ users:
 ```
 
 And an empty meta-data file.
+
+### Libvirt
+
+Following Libvirt domain configuration can be used to use the Cloud-init configuration during boot:
+
+```xml
+  <os>
+    <type arch='x86_64' machine='pc-q35-rhel9.4.0'>hvm</type>
+    <smbios mode='sysinfo'/>
+  </os>
+  <sysinfo type='smbios'>
+    <system>
+      <entry name='serial'>ds=nocloud-net;s=http://IP_ADDRESS/default/</entry>
+    </system>
+  </sysinfo>
+```
+
+> [!WARNING]
+> Do not use RHEL 9.4 images as these contain a cloud-init version which do not work with the 'nocloud' seedfrom URL!
+> https://bugzilla.redhat.com/show_bug.cgi?id=2279305
