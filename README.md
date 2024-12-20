@@ -11,13 +11,14 @@ This role has to be executed as user 'root'.
 
 ## Variables
 
-| Variable               | Type   | Required | Default | Comment                             |
-|------------------------|--------|----------|---------|-------------------------------------|
-| cloud_init_ipv4        | string | No       | *       | IPv4 interface to listen on (NGINX) |
-| cloud_init_ipv6        | string | No       | [::]    | IPv6 interface to listen on (NGINX) |
-| cloud_init_port        | int    | No       | 80      | Port to listen on (NGINX)           | 
-| cloud_init_user_data   | list() | No       | N/A     | Cloud-config user-data (multiple)   |
-| cloud_init_vendor_data | dict() | No       | N/A     | Cloud-config vendor-data (global)   |
+| Variable                   | Type   | Required | Default    | Comment                             |
+|----------------------------|--------|----------|------------|-------------------------------------|
+| cloud_init_ipv4            | string | No       | *          | IPv4 interface to listen on (NGINX) |
+| cloud_init_ipv6            | string | No       | [::]       | IPv6 interface to listen on (NGINX) |
+| cloud_init_port            | int    | No       | 80         | Port to listen on (NGINX)           | 
+| cloud_init_firewalld_zones | list() | No       | ['public'] | Firewalld zones to allow cloudinit  |
+| cloud_init_user_data       | dict() | No       | N/A        | Cloud-config user-data (multiple)   |
+| cloud_init_vendor_data     | dict() | No       | N/A        | Cloud-config vendor-data (global)   |
 
 ### Cloud Config
 

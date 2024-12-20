@@ -4,4 +4,7 @@ cloud_init_ipv4: '*'
 cloud_init_ipv6: '[::]'
 
 cloud_init_port: 80
+
+cloud_init_firewalld_zones:
+  - public
 ...

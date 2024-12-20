@@ -104,13 +104,14 @@
     mode: '0644'
   notify: restart nginx
 
-- name: Allow HTTP in firewalld for libvirt zone
+- name: Allow HTTP in firewalld zones
   ansible.posix.firewalld:
-    zone: libvirt
+    zone: '{{ item }}'
     service: http
     permanent: true
     immediate: true
     state: enabled
+  loop: "{{ cloud_init_firewalld_zones | flatten(levels=1) }}"
   when: ansible_facts.services['firewalld.service'].state == 'running'
 
 - name: Start and enable Nginx services
